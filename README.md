@@ -32,3 +32,14 @@ docker run --rm -v "$(pwd)"/db/migrations:/migrations migrate/migrate create -ex
 ```
 docker run --rm -v "$(pwd)"/db/migrations:/migrations --network host migrate/migrate -database 'postgres://postgres:password@localhost:5432/auth?sslmode=disable' -path migrations up
 ``` 
+
+## How to create mock of interfaces
+You have to install mockgen
+  ```bash
+  mockgen -source internal/domain/user.go -destination internal/domain/mock/user.go
+  ```
+
+Don't forget to include your go/bin to $PATH
+```
+export PATH="$PATH:$GOPATH/bin"
+```
