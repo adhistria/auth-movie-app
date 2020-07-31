@@ -7,7 +7,7 @@ import (
 
 	"github.com/adhistria/auth-movie-app/internal/domain"
 	mock_domain "github.com/adhistria/auth-movie-app/internal/domain/mock"
-	"github.com/adhistria/auth-movie-app/internal/service"
+	. "github.com/adhistria/auth-movie-app/internal/service"
 	"github.com/golang/mock/gomock"
 )
 
@@ -25,9 +25,7 @@ func TestUserService(t *testing.T) {
 
 	mu.EXPECT().Create(context.Background(), &mockUser).Return(nil)
 
-	userService := service.UserService{
-		UserRepo: mu,
-	}
+	userService := NewUserService(mu)
 
 	err := userService.Register(context.Background(), &mockUser)
 	if err != nil {
@@ -46,21 +44,112 @@ func TestUserServiceWhenGeneratePassword(t *testing.T) {
 		Password: "password",
 	}
 
-	userService := service.UserService{
-		UserRepo: mu,
-	}
+	userService := NewUserService(mu)
 
-	oldHashAndSalt := service.HashAndSalt
-	defer func() { service.HashAndSalt = oldHashAndSalt }()
+	oldHashAndSalt := HashAndSalt
+	defer func() { HashAndSalt = oldHashAndSalt }()
 
 	newHashAndSalt := func(password []byte, cost int) ([]byte, error) {
 		return nil, errors.New("Error when generated password")
 	}
 
-	service.HashAndSalt = newHashAndSalt
+	HashAndSalt = newHashAndSalt
 
 	err := userService.Register(context.Background(), &mockUser)
 	if err == nil {
 		t.Errorf("Error was expected: %s", err)
+	}
+}
+
+func TestGivenUnregisterUserWhenLoginThenReturnError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockUser := domain.User{
+		Name:     "john",
+		Email:    "john@doe.com",
+		Password: "password",
+	}
+
+	mu := mock_domain.NewMockUserRepository(ctrl)
+	mu.EXPECT().FindByEmail(context.Background(), &mockUser).Return(nil, errors.New("User not found"))
+
+	userService := NewUserService(mu)
+
+	err := userService.Login(context.Background(), &mockUser)
+	if err == nil {
+		t.Errorf("Error was expected: %s", err)
+	}
+}
+
+func TestGivenUncorrectPasswordWhenLoginThenReturnError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockUser := domain.User{
+		Name:     "john",
+		Email:    "john@doe.com",
+		Password: "password",
+	}
+
+	mockUser2 := domain.User{
+		Name:     "john",
+		Email:    "john@doe.com",
+		Password: "12345",
+	}
+
+	mu := mock_domain.NewMockUserRepository(ctrl)
+	mu.EXPECT().FindByEmail(context.Background(), &mockUser).Return(&mockUser2, nil)
+
+	userService := NewUserService(mu)
+
+	oldCompareHashPassword := CompareHashPassword
+	defer func() { CompareHashPassword = oldCompareHashPassword }()
+
+	newCompareHashPassword := func(hashPassword []byte, password []byte) error {
+		return errors.New("Error compare hash password")
+	}
+
+	CompareHashPassword = newCompareHashPassword
+
+	err := userService.Login(context.Background(), &mockUser)
+	if err == nil {
+		t.Errorf("Error was expected: %s", err)
+	}
+}
+
+func TestGivenCorrectPasswordWhenLoginThenReturnSuccess(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockUser := domain.User{
+		Name:     "john",
+		Email:    "john@doe.com",
+		Password: "password",
+	}
+
+	mockUser2 := domain.User{
+		Name:     "john",
+		Email:    "john@doe.com",
+		Password: "12345",
+	}
+
+	mu := mock_domain.NewMockUserRepository(ctrl)
+	mu.EXPECT().FindByEmail(context.Background(), &mockUser).Return(&mockUser2, nil)
+
+	userService := NewUserService(mu)
+
+	oldCompareHashPassword := CompareHashPassword
+	defer func() { CompareHashPassword = oldCompareHashPassword }()
+
+	newCompareHashPassword := func(hashPassword []byte, password []byte) error {
+		return nil
+	}
+
+	CompareHashPassword = newCompareHashPassword
+
+	err := userService.Login(context.Background(), &mockUser)
+	if err != nil {
+		t.Errorf("Error was not expected: %s", err)
 	}
 }
