@@ -76,7 +76,7 @@ func TestGivenUnregisterUserWhenLoginThenReturnError(t *testing.T) {
 
 	userService := NewUserService(mu)
 
-	err := userService.Login(context.Background(), &mockUser)
+	_, err := userService.Login(context.Background(), &mockUser)
 	if err == nil {
 		t.Errorf("Error was expected: %s", err)
 	}
@@ -112,7 +112,7 @@ func TestGivenUncorrectPasswordWhenLoginThenReturnError(t *testing.T) {
 
 	CompareHashPassword = newCompareHashPassword
 
-	err := userService.Login(context.Background(), &mockUser)
+	_, err := userService.Login(context.Background(), &mockUser)
 	if err == nil {
 		t.Errorf("Error was expected: %s", err)
 	}
@@ -148,8 +148,44 @@ func TestGivenCorrectPasswordWhenLoginThenReturnSuccess(t *testing.T) {
 
 	CompareHashPassword = newCompareHashPassword
 
-	err := userService.Login(context.Background(), &mockUser)
+	_, err := userService.Login(context.Background(), &mockUser)
 	if err != nil {
 		t.Errorf("Error was not expected: %s", err)
 	}
+}
+
+func TestGivenCorrectPasswordWhenLoginThenJWTClaim(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockUser := domain.User{
+		Name:     "john",
+		Email:    "john@doe.com",
+		Password: "password",
+	}
+
+	mockUser2 := domain.User{
+		Name:     "john",
+		Email:    "john@doe.com",
+		Password: "12345",
+	}
+
+	mu := mock_domain.NewMockUserRepository(ctrl)
+	mu.EXPECT().FindByEmail(context.Background(), &mockUser).Return(&mockUser2, nil)
+
+	userService := NewUserService(mu)
+
+	oldCompareHashPassword := CompareHashPassword
+	defer func() { CompareHashPassword = oldCompareHashPassword }()
+
+	newCompareHashPassword := func(hashPassword []byte, password []byte) error {
+		return nil
+	}
+
+	CompareHashPassword = newCompareHashPassword
+	_, err := userService.Login(context.Background(), &mockUser)
+	if err != nil {
+		t.Errorf("Error was expected: %s", err)
+	}
+
 }

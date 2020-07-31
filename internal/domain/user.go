@@ -1,6 +1,10 @@
 package domain
 
-import "context"
+import (
+	"context"
+
+	jwt "github.com/dgrijalva/jwt-go"
+)
 
 // User represent user entity
 type User struct {
@@ -10,10 +14,23 @@ type User struct {
 	Password string `json:"password" db:"password"`
 }
 
+// UserClaim ..
+type UserClaim struct {
+	Name  string `json:"name"`
+	Email string `json:"email"`
+	jwt.StandardClaims
+}
+
+// UserToken ..
+type UserToken struct {
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+}
+
 // UserService represent of user service
 type UserService interface {
 	Register(ctx context.Context, user *User) error
-	Login(ctx context.Context, user *User) error
+	Login(ctx context.Context, user *User) (*UserToken, error)
 }
 
 // UserRepository represent interface of user repository
