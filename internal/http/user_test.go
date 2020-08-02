@@ -95,7 +95,6 @@ func TestWhenRegisterGivenCorrectUserThenReturnSuccess(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mu := mock_domain.NewMockUserService(ctrl)
-
 	mu.EXPECT().Register(context.Background(), &user).Return(nil)
 
 	router := httprouter.New()
@@ -147,4 +146,34 @@ func TestWhenLoginGivenInvalidBodyThenReturnError(t *testing.T) {
 		t.Errorf("handler return wrong status code")
 	}
 	t.Logf("Status code : %v ", rr.Code)
+}
+
+func TestLoginGivenInvalidUserWhenLoginThenReturnError(t *testing.T) {
+	body := domain.User{
+		Email:    "adhistria1@gmail.com",
+		Password: "password",
+	}
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mu := mock_domain.NewMockUserService(ctrl)
+	mu.EXPECT().Login(context.Background(), &body).Return(nil, errors.New("Error when find user"))
+	router := httprouter.New()
+	NewUserHandler(router, mu)
+
+	userReq, err := json.Marshal(body)
+	if err != nil {
+		t.Errorf("Fail marshal data : %s", err)
+	}
+	req, err := http.NewRequest("POST", "/login", bytes.NewBuffer(userReq))
+	if err != nil {
+		t.Errorf("Fail create request : %s", err)
+	}
+	rr := httptest.NewRecorder()
+	router.ServeHTTP(rr, req)
+
+	if status := rr.Code; status != http.StatusBadRequest {
+		t.Errorf("handler return invalid status code")
+	}
+	t.Logf("Status code : %v ", rr.Code)
+
 }
