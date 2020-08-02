@@ -84,3 +84,38 @@ func TestWhenRegisterGivenIncorrectBodyThenReturnError(t *testing.T) {
 	}
 	t.Logf("Status Code : %v", rr.Code)
 }
+
+func TestWhenRegisterGivenCorrectUserThenReturnSuccess(t *testing.T) {
+	user := domain.User{
+		Name:     "adhi",
+		Email:    "adhistria1@gmail.com",
+		Password: "password",
+	}
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mu := mock_domain.NewMockUserService(ctrl)
+
+	mu.EXPECT().Register(context.Background(), &user).Return(nil)
+
+	router := httprouter.New()
+	NewUserHandler(router, mu)
+
+	registerBody, err := json.Marshal(map[string]interface{}{
+		"email":    "adhistria1@gmail.com",
+		"name":     "adhi",
+		"password": "password",
+	})
+	req, err := http.NewRequest("POST", "/register", bytes.NewBuffer(registerBody))
+	if err != nil {
+		t.Fatalf("Error create new request : %s", err)
+	}
+
+	rr := httptest.NewRecorder()
+	router.ServeHTTP(rr, req)
+
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("handler return wrong status code")
+	}
+	t.Logf("Status Code : %v", rr.Code)
+}
