@@ -2,6 +2,6 @@ package http
 
 // SuccessResponse ..
 type SuccessResponse struct {
-	Message string      `json:"string"`
+	Message string      `json:"message"`
 	Data    interface{} `json:"data,omitempty"`
 }
