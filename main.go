@@ -14,6 +14,7 @@ import (
 	"github.com/adhistria/auth-movie-app/internal/repository/psql"
 	"github.com/adhistria/auth-movie-app/internal/service"
 	"github.com/joho/godotenv"
+	"github.com/rs/cors"
 )
 
 func main() {
@@ -35,5 +36,7 @@ func main() {
 	http_app.NewUserHandler(router, userService)
 
 	log.Info("Run application")
-	log.Fatal(http.ListenAndServe(":8080", router))
+
+	handler := cors.Default().Handler(router)
+	log.Fatal(http.ListenAndServe(":8080", handler))
 }
