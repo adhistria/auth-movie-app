@@ -1,7 +1,6 @@
 CREATE TABLE IF NOT EXISTS users(
-  id BIGINT,
-  name VARCHAR(100),
-  email VARCHAR(100),
-  password VARCHAR,
-  PRIMARY KEY(id)
+  id BIGSERIAL PRIMARY KEY,
+  password VARCHAR(100) NOT NULL,
+  name VARCHAR(100) NOT NULL,
+  email VARCHAR(100) NOT NULL
 )
