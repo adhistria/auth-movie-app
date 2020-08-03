@@ -14,10 +14,9 @@ type userRepository struct {
 }
 
 // Create add new user to database
-func (r userRepository) Create(ctx context.Context, user *domain.User) error {
+func (r *userRepository) Create(ctx context.Context, user *domain.User) error {
 	query := `INSERT INTO users (name, email, password) VALUES(:name, :email, :password);`
 	_, err := r.DB.Conn.NamedExec(query, user)
-
 	if err != nil {
 		log.Warnf("Can't create new user: %v", err)
 		return err
@@ -27,9 +26,9 @@ func (r userRepository) Create(ctx context.Context, user *domain.User) error {
 }
 
 // FindByEmail find user by email
-func (r userRepository) FindByEmail(ctx context.Context, user *domain.User) (*domain.User, error) {
+func (r *userRepository) FindByEmail(ctx context.Context, user *domain.User) (*domain.User, error) {
 	newUser := domain.User{}
-	query := `SELECT email, password FROM users WHERE email = ?;`
+	query := `SELECT * FROM users WHERE email = $1`
 	err := r.DB.Conn.Get(&newUser, query, user.Email)
 
 	if err != nil {
