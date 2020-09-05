@@ -9,9 +9,9 @@ import (
 // User represent user entity
 type User struct {
 	ID       uint64 `db:"id"`
-	Name     string `json:"name" db:"name"`
-	Email    string `json:"email" db:"email"`
-	Password string `json:"password" db:"password"`
+	Name     string `json:"name" db:"name" validate:"required"`
+	Email    string `json:"email" db:"email" validate:"required"`
+	Password string `json:"password" db:"password" validate:"required"`
 }
 
 // UserClaim ..

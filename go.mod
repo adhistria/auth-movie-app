@@ -5,6 +5,7 @@ go 1.14
 require (
 	github.com/DATA-DOG/go-sqlmock v1.4.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
+	github.com/go-playground/validator/v10 v10.3.0 // indirect
 	github.com/golang-migrate/migrate/v4 v4.11.0 // indirect
 	github.com/golang/mock v1.4.3
 	github.com/jmoiron/sqlx v1.2.0
