@@ -40,9 +40,12 @@ func NewValidator() *Validator {
 // Validate return error messages
 func (v *Validator) Validate(data interface{}) map[string]string {
 	err := v.validator.Struct(data)
-	errors := map[string]string{}
-	for _, e := range err.(go_validator.ValidationErrors) {
-		errors[e.Field()] = e.Translate(v.translator)
+	if err != nil {
+		errors := map[string]string{}
+		for _, e := range err.(go_validator.ValidationErrors) {
+			errors[e.Field()] = e.Translate(v.translator)
+		}
+		return errors
 	}
-	return errors
+	return nil
 }
