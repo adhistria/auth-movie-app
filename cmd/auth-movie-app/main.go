@@ -13,6 +13,7 @@ import (
 	http_app "github.com/adhistria/auth-movie-app/internal/http"
 	"github.com/adhistria/auth-movie-app/internal/repository/psql"
 	"github.com/adhistria/auth-movie-app/internal/service"
+	"github.com/adhistria/auth-movie-app/internal/validation"
 	"github.com/joho/godotenv"
 	"github.com/rs/cors"
 )
@@ -33,7 +34,8 @@ func main() {
 
 	userRepo := psql.NewUserRepository(database)
 	userService := service.NewUserService(userRepo)
-	http_app.NewUserHandler(router, userService)
+	validator := validation.NewValidator()
+	http_app.NewUserHandler(router, userService, validator)
 
 	log.Info("Run application")
 
