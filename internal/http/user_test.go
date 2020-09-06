@@ -12,6 +12,7 @@ import (
 	"github.com/adhistria/auth-movie-app/internal/domain"
 	mock_domain "github.com/adhistria/auth-movie-app/internal/domain/mock"
 	. "github.com/adhistria/auth-movie-app/internal/http"
+	"github.com/adhistria/auth-movie-app/internal/validation"
 	"github.com/golang/mock/gomock"
 	"github.com/julienschmidt/httprouter"
 )
@@ -29,8 +30,9 @@ func TestWhenRegisterGivenIncorectUserThenReturnError(t *testing.T) {
 	mu := mock_domain.NewMockUserService(ctrl)
 	mu.EXPECT().Register(context.Background(), &user).Return(errors.New("Error create new user"))
 	router := httprouter.New()
+	validator := validation.NewValidator()
 
-	NewUserHandler(router, mu)
+	NewUserHandler(router, mu, validator)
 
 	registerBody, err := json.Marshal(map[string]interface{}{
 		"email":    "adhistria1@gmail.com",
@@ -63,7 +65,8 @@ func TestWhenRegisterGivenIncorrectBodyThenReturnError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mu := mock_domain.NewMockUserService(ctrl)
-	NewUserHandler(router, mu)
+	validator := validation.NewValidator()
+	NewUserHandler(router, mu, validator)
 
 	registerBody, err := json.Marshal(map[string]interface{}{
 		"email":    1,
@@ -85,6 +88,35 @@ func TestWhenRegisterGivenIncorrectBodyThenReturnError(t *testing.T) {
 	t.Logf("Status Code : %v", rr.Code)
 }
 
+func TestGiveIncorrectBodyWhenRegisterThenReturnError(t *testing.T) {
+	router := httprouter.New()
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mu := mock_domain.NewMockUserService(ctrl)
+	validator := validation.NewValidator()
+	NewUserHandler(router, mu, validator)
+
+	registerBody, err := json.Marshal(map[string]interface{}{
+		"email":    "",
+		"name":     "",
+		"password": "",
+	})
+	req, err := http.NewRequest("POST", "/register", bytes.NewBuffer(registerBody))
+	if err != nil {
+		t.Fatalf("Error create new request : %s", err)
+	}
+
+	rr := httptest.NewRecorder()
+	t.Log(rr)
+	router.ServeHTTP(rr, req)
+
+	if status := rr.Code; status != http.StatusBadRequest {
+		t.Errorf("handler return wrong status code")
+	}
+	t.Log("YYANG DISINI")
+	t.Logf("Status Code : %v", rr.Code)
+}
+
 func TestWhenRegisterGivenCorrectUserThenReturnSuccess(t *testing.T) {
 	user := domain.User{
 		Name:     "adhi",
@@ -98,7 +130,8 @@ func TestWhenRegisterGivenCorrectUserThenReturnSuccess(t *testing.T) {
 	mu.EXPECT().Register(context.Background(), &user).Return(nil)
 
 	router := httprouter.New()
-	NewUserHandler(router, mu)
+	validator := validation.NewValidator()
+	NewUserHandler(router, mu, validator)
 
 	registerBody, err := json.Marshal(map[string]interface{}{
 		"email":    "adhistria1@gmail.com",
@@ -124,7 +157,8 @@ func TestWhenLoginGivenInvalidBodyThenReturnError(t *testing.T) {
 	defer ctrl.Finish()
 	mu := mock_domain.NewMockUserService(ctrl)
 	router := httprouter.New()
-	NewUserHandler(router, mu)
+	validator := validation.NewValidator()
+	NewUserHandler(router, mu, validator)
 
 	invalidBody := map[string]interface{}{
 		"Name":     1,
@@ -158,7 +192,8 @@ func TestLoginGivenInvalidUserWhenLoginThenReturnError(t *testing.T) {
 	mu := mock_domain.NewMockUserService(ctrl)
 	mu.EXPECT().Login(context.Background(), &body).Return(nil, errors.New("Error when find user"))
 	router := httprouter.New()
-	NewUserHandler(router, mu)
+	validator := validation.NewValidator()
+	NewUserHandler(router, mu, validator)
 
 	userReq, err := json.Marshal(body)
 	if err != nil {
@@ -189,7 +224,8 @@ func TestGivenValidUserWhenLoginThenSuccess(t *testing.T) {
 	mu := mock_domain.NewMockUserService(ctrl)
 	mu.EXPECT().Login(context.Background(), &body).Return(&userToken, nil)
 	router := httprouter.New()
-	NewUserHandler(router, mu)
+	validator := validation.NewValidator()
+	NewUserHandler(router, mu, validator)
 
 	userReq, err := json.Marshal(body)
 	if err != nil {
