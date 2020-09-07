@@ -18,20 +18,25 @@ type UserHandler struct {
 
 // Register add new user
 func (u *UserHandler) Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	var user domain.User
-	err := json.NewDecoder(r.Body).Decode(&user)
+	var registerReq domain.RegisterRequest
+	err := json.NewDecoder(r.Body).Decode(&registerReq)
 	if err != nil {
 		log.Warnf("Error decode user body when register : %s", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	errors := u.Validator.Validate(user)
+	errors := u.Validator.Validate(registerReq)
 	if errors != nil {
 		log.Warnf("Error validate register : %s", err)
 		w.WriteHeader(http.StatusBadRequest)
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(errors)
 		return
+	}
+	user := domain.User{
+		Name:     registerReq.Name,
+		Email:    registerReq.Email,
+		Password: registerReq.Password,
 	}
 	err = u.UserSerivce.Register(r.Context(), &user)
 	if err != nil {

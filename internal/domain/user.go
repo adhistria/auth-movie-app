@@ -14,6 +14,19 @@ type User struct {
 	Password string `json:"password" db:"password" validate:"required"`
 }
 
+// RegisterRequest struct represent json body when register
+type RegisterRequest struct {
+	Name     string `json:"name" validate:"required"`
+	Email    string `json:"email" validate:"required"`
+	Password string `json:"password" validate:"required"`
+}
+
+// LoginRequest struct represent json body when login
+type LoginRequest struct {
+	Email    string `json:"email" validate:"required"`
+	Password string `json:"password" validate:"required"`
+}
+
 // UserClaim ..
 type UserClaim struct {
 	Name  string `json:"name"`
