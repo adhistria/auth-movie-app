@@ -113,7 +113,6 @@ func TestGiveIncorrectBodyWhenRegisterThenReturnError(t *testing.T) {
 	if status := rr.Code; status != http.StatusBadRequest {
 		t.Errorf("handler return wrong status code")
 	}
-	t.Log("YYANG DISINI")
 	t.Logf("Status Code : %v", rr.Code)
 }
 
