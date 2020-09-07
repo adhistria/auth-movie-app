@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/adhistria/auth-movie-app/internal/domain"
@@ -31,6 +32,11 @@ type userService struct {
 
 // Register add new user
 func (s *userService) Register(ctx context.Context, user *domain.User) error {
+	fUser, _ := s.UserRepo.FindByEmail(ctx, user)
+	if fUser != nil {
+		log.Infof("User already exists : %s ", fUser.Email)
+		return errors.New("User already exists")
+	}
 	hashPassword, err := HashAndSalt([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
 		log.Warn("Fail when generate password")

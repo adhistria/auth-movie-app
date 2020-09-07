@@ -11,6 +11,24 @@ import (
 	"github.com/golang/mock/gomock"
 )
 
+func TestGivenDuplicateEmailWhenRegisterThenReturnError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mu := mock_domain.NewMockUserRepository(ctrl)
+	mockUser := domain.User{
+		Name:     "john",
+		Email:    "john@doe.com",
+		Password: "password",
+	}
+	mu.EXPECT().FindByEmail(context.Background(), &mockUser).Return(&mockUser, nil)
+
+	userService := NewUserService(mu)
+
+	err := userService.Register(context.Background(), &mockUser)
+	if err == nil {
+		t.Errorf("Error was expected: %s", err)
+	}
+}
 func TestUserService(t *testing.T) {
 
 	ctrl := gomock.NewController(t)
@@ -23,6 +41,7 @@ func TestUserService(t *testing.T) {
 		Password: "password",
 	}
 
+	mu.EXPECT().FindByEmail(context.Background(), &mockUser).Return(nil, nil)
 	mu.EXPECT().Create(context.Background(), &mockUser).Return(nil)
 
 	userService := NewUserService(mu)
@@ -43,6 +62,7 @@ func TestUserServiceWhenGeneratePassword(t *testing.T) {
 		Email:    "john@doe.com",
 		Password: "password",
 	}
+	mu.EXPECT().FindByEmail(context.Background(), &mockUser).Return(nil, nil)
 
 	userService := NewUserService(mu)
 
