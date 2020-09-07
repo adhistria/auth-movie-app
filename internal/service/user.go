@@ -54,40 +54,21 @@ func (s *userService) Login(ctx context.Context, user *domain.User) (*domain.Use
 	}
 
 	userToken := domain.UserToken{
-		AccessToken:  s.generateAccessToken(ctx, user),
-		RefreshToken: s.generateRefreshToken(ctx, user),
+		AccessToken:  s.generateToken(ctx, "access_token", user),
+		RefreshToken: s.generateToken(ctx, "refresh_token", user),
 	}
 
 	return &userToken, nil
 }
 
-func (s *userService) generateAccessToken(ctx context.Context, user *domain.User) string {
+func (s *userService) generateToken(ctx context.Context, tokenType string, user *domain.User) string {
 	userClaim := domain.UserClaim{
 		user.Name,
 		user.Email,
 		jwt.StandardClaims{
-			Subject:   "access_token",
+			Subject:   tokenType,
 			Issuer:    user.Email,
 			ExpiresAt: time.Now().Add(defaultAccessToken).Unix(),
-		},
-	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, userClaim)
-	accessToken, err := token.SignedString([]byte("supec secret key"))
-	if err != nil {
-		log.Warnf("Error signed token : %s ", err)
-		return ""
-	}
-	return accessToken
-}
-
-func (s *userService) generateRefreshToken(ctx context.Context, user *domain.User) string {
-	userClaim := domain.UserClaim{
-		user.Name,
-		user.Email,
-		jwt.StandardClaims{
-			Subject:   "refresh_token",
-			Issuer:    user.Email,
-			ExpiresAt: time.Now().Add(defaultRefreshToken).Unix(),
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, userClaim)
