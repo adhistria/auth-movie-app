@@ -243,3 +243,33 @@ func TestGivenValidUserWhenLoginThenSuccess(t *testing.T) {
 	}
 	t.Logf("Status code : %v ", rr.Code)
 }
+
+func TestGivenInvalidBodyWhenLoginThenReturnError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mu := mock_domain.NewMockUserService(ctrl)
+	router := httprouter.New()
+	validator := validation.NewValidator()
+	NewUserHandler(router, mu, validator)
+
+	invalidBody := map[string]interface{}{
+		"Email":    "",
+		"Password": "",
+	}
+
+	ibReq, err := json.Marshal(invalidBody)
+	if err != nil {
+		t.Fatalf("Error when marshal : %s", err)
+	}
+	req, err := http.NewRequest("POST", "/login", bytes.NewBuffer(ibReq))
+	if err != nil {
+		t.Fatalf("Error when create request : %s", err)
+	}
+	rr := httptest.NewRecorder()
+	router.ServeHTTP(rr, req)
+
+	if status := rr.Code; status != http.StatusBadRequest {
+		t.Errorf("handler return wrong status code")
+	}
+	t.Logf("Status code : %v ", rr.Code)
+}

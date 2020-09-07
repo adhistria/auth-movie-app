@@ -54,14 +54,25 @@ func (u *UserHandler) Register(w http.ResponseWriter, r *http.Request, _ httprou
 
 // Login authenticate user
 func (u *UserHandler) Login(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	var user domain.User
-	err := json.NewDecoder(r.Body).Decode(&user)
+	var loginReq domain.LoginRequest
+	err := json.NewDecoder(r.Body).Decode(&loginReq)
 	if err != nil {
 		log.Warnf("Error when decode json : %s", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-
+	errors := u.Validator.Validate(loginReq)
+	if errors != nil {
+		log.Warnf("Error validate login : %s", err)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(errors)
+		return
+	}
+	user := domain.User{
+		Email:    loginReq.Email,
+		Password: loginReq.Password,
+	}
 	token, err := u.UserSerivce.Login(r.Context(), &user)
 	if err != nil {
 		log.Warnf("Email %s when login %s", user.Email, err)
