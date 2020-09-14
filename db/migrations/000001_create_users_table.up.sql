@@ -2,5 +2,7 @@ CREATE TABLE IF NOT EXISTS users(
   id BIGSERIAL PRIMARY KEY,
   password VARCHAR(100) NOT NULL,
   name VARCHAR(100) NOT NULL,
-  email VARCHAR(100) NOT NULL
+  email VARCHAR(100) UNIQUE NOT NULL,
+  role_id int,
+  FOREIGN KEY (role_id) REFERENCES roles(role_id)
 )
