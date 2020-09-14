@@ -12,6 +12,7 @@ type User struct {
 	Name     string `json:"name" db:"name" validate:"required"`
 	Email    string `json:"email" db:"email" validate:"required"`
 	Password string `json:"password" db:"password" validate:"required"`
+	RoleID   string `db:"role_id"`
 }
 
 // RegisterRequest struct represent json body when register
