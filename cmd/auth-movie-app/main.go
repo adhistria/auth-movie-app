@@ -31,12 +31,11 @@ func main() {
 		log.Fatalf("Error init database connection : %s ", err)
 	}
 	router := httprouter.New()
-
 	userRepo := psql.NewUserRepository(database)
 	userService := service.NewUserService(userRepo)
 	validator := validation.NewValidator()
 	http_app.NewUserHandler(router, userService, validator)
-
+	http_app.NewPrometheusHandler(router)
 	log.Info("Run application")
 
 	handler := cors.Default().Handler(router)
